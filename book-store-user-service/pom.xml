@@ -9,7 +9,7 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.example</groupId>
-    <artifactId>user-service</artifactId>
+    <artifactId>book-store-user-service</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>book-store-user-service</name>
     <description>book-store-user-service</description>
