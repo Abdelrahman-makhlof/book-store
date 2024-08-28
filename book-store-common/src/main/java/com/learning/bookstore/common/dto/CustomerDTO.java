@@ -1,4 +1,4 @@
-package com.learning.bookstore.userservice.dto;
+package com.learning.bookstore.common.dto;
 
 import com.learning.bookstore.common.interfaces.ValidEmail;
 import com.learning.bookstore.common.interfaces.ValidPassword;
@@ -8,7 +8,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
-public class UserDTO {
+public class CustomerDTO {
 
     private Long id;
     @NotNull(message = "Enter user name")

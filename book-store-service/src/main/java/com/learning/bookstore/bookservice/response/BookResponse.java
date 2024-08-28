@@ -1,6 +1,6 @@
 package com.learning.bookstore.bookservice.response;
 
-import com.learning.bookstore.bookservice.dto.BookDTO;
+import com.learning.bookstore.common.dto.BookDTO;
 import lombok.Data;
 
 import java.util.List;

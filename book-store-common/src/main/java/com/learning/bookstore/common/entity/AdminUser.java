@@ -1,12 +1,13 @@
-package com.learning.bookstore.userservice.entity;
+package com.learning.bookstore.common.entity;
 
+import com.learning.bookstore.common.constants.Role;
 import jakarta.persistence.*;
 import lombok.Data;
 
 @Entity
 @Data
-@Table(name = "system_users", uniqueConstraints = {@UniqueConstraint(columnNames = {"email", "username"})})
-public class User {
+@Table(name = "ADMIN_USERS", uniqueConstraints = {@UniqueConstraint(columnNames = {"EMAIL", "USERNAME"})})
+public class AdminUser {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -19,4 +20,5 @@ public class User {
     private String password;
     @Column(nullable = false)
     private String email;
+    private Role role;
 }

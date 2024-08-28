@@ -1,4 +1,4 @@
-package com.learning.bookstore.bookservice.dto;
+package com.learning.bookstore.common.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.NotNull;
@@ -17,4 +17,5 @@ public class BookDTO {
     private double price;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate releaseDate;
+    private CategoryDTO category;
 }

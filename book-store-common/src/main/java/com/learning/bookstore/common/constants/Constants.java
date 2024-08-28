@@ -4,5 +4,9 @@ public class Constants {
 
     public static String PASSWORD_REGEX = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@#$%^&+=]).{8,}$";
     public static String USERNAME_REGEX = "^[a-zA-Z0-9_-]{3,30}$";
-    public static  String EMAIL_REGEX = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$";
+    public static String EMAIL_REGEX = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$";
+    public static String TRANSACTION_ID = "transaction-id";
+    public static String MESSAGE = "message";
+    public static String EXECUTION_TIME = "execution-time";
+
 }

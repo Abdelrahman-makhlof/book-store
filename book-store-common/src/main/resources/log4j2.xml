@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="warn">
+    <Properties>
+        <Property name="basePath">./logs</Property>
+    </Properties>
+
+    <Appenders>
+        <RollingFile name="businessFileAppender" fileName="${basePath}/log.log"
+                     filePattern="${basePath}/log_%d{yyyy-MM-dd}.log">
+            <AdvancedJSONLayout newLine="true" exposeMessageOnRoot="true" exposeContextMapOnRoot="true" exposeLocationOnRoot="true" locationInfo="true">
+                <KeyValuePair key="service" value="sending-engine" />
+            </AdvancedJSONLayout>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+            </Policies>
+        </RollingFile>
+
+        <RollingFile name="errorFileAppender" fileName="${basePath}/Error.log" 
+                     filePattern="${basePath}/Error_%d{yyyy-MM-dd}.log">
+            <AdvancedJSONLayout newLine="true" exposeMessageOnRoot="true" exposeContextMapOnRoot="true" exposeLocationOnRoot="true" locationInfo="true">
+                <KeyValuePair key="service" value="sending-engine" />
+            </AdvancedJSONLayout>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+            </Policies>
+        </RollingFile>
+		
+        <RollingFile name="livenessFileAppender" fileName="${basePath}/Liveness.log" 
+                             filePattern="${basePath}/Liveness_%d{yyyy-MM-dd}.log">
+            <AdvancedJSONLayout newLine="true" exposeMessageOnRoot="true" exposeContextMapOnRoot="true" exposeLocationOnRoot="true" locationInfo="true">
+                <KeyValuePair key="service" value="sending-engine" />
+            </AdvancedJSONLayout>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+            </Policies>
+        </RollingFile>
+       
+        <Console name="console" target="SYSTEM_OUT">
+            <AdvancedJSONLayout newLine="true" exposeMessageOnRoot="true" exposeContextMapOnRoot="true" exposeLocationOnRoot="true" locationInfo="true">
+                <KeyValuePair key="service" value="sending-engine" />
+            </AdvancedJSONLayout>
+        </Console>
+    </Appenders>
+
+    <Loggers>
+        <Logger name="businessLogger" level="debug" additivity="false">
+            <AppenderRef  ref="businessFileAppender" level="debug" />
+             <AppenderRef  ref="console" level="info" />
+        </Logger>
+        <Logger name="errorLogger" level="debug" additivity="false">
+            <AppenderRef  ref="errorFileAppender" level="debug" />
+             <AppenderRef  ref="console" level="info" />
+        </Logger>
+        <Logger name="livenessLogger" level="debug" additivity="false">
+            <AppenderRef  ref="livenessFileAppender" level="debug" />
+             <AppenderRef  ref="console" level="info" />
+        </Logger>
+        <Root level="debug" additivity="false">
+            <AppenderRef  ref="console" level="debug" />
+        </Root>
+    </Loggers>
+</Configuration>

@@ -1,14 +1,14 @@
 package com.learning.bookstore.userservice.controller;
 
 import com.learning.bookstore.common.constants.ErrorCodes;
+import com.learning.bookstore.common.dto.CustomerDTO;
 import com.learning.bookstore.common.exception.ApplicationException;
 import com.learning.bookstore.common.exception.ValidationException;
 import com.learning.bookstore.common.interfaces.ValidEmail;
 import com.learning.bookstore.common.interfaces.ValidUsername;
 import com.learning.bookstore.common.util.Util;
-import com.learning.bookstore.userservice.dto.UserDTO;
 import com.learning.bookstore.userservice.request.UserRequest;
-import com.learning.bookstore.userservice.service.UserService;
+import com.learning.bookstore.userservice.service.CustomerService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -20,54 +20,58 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @Validated
 @RequiredArgsConstructor
-@RequestMapping("api/v1/users")
-public class UserController {
+@RequestMapping("api/v1/customers")
+public class CustomerController {
 
-    private final UserService userService;
+    private final CustomerService userService;
 
     @PostMapping
-    public ResponseEntity<UserDTO> addUser(@RequestBody @Valid UserDTO userDTO, HttpServletRequest httpServletRequest) throws ValidationException {
+    public ResponseEntity<CustomerDTO> addUser(@RequestBody @Valid CustomerDTO customerDTO, HttpServletRequest httpServletRequest) throws ValidationException {
+        long startTime = System.currentTimeMillis();
         var transactionId = httpServletRequest.getHeader("transaction-id");
         Thread.currentThread().setName(transactionId != null ? transactionId : Util.generateTransaction());
 
-        var user = userService.addUser(userDTO);
-        return new ResponseEntity<>(user, HttpStatus.CREATED);
+        var customer = userService.addCustomer(customerDTO);
+        return Util.createResponse(customer, HttpStatus.CREATED, startTime);
     }
 
     @GetMapping
-    public ResponseEntity<UserDTO> getUser(@RequestParam(required = false) @ValidUsername String username, @RequestParam(required = false) @ValidEmail String email,
-                                           HttpServletRequest httpServletRequest) throws ApplicationException, ValidationException {
+    public ResponseEntity<CustomerDTO> getUser(@RequestParam(required = false) @ValidUsername String username, @RequestParam(required = false) @ValidEmail String email,
+                                               HttpServletRequest httpServletRequest) throws ApplicationException, ValidationException {
+        long startTime = System.currentTimeMillis();
         var transactionId = httpServletRequest.getHeader("transaction-id");
         Thread.currentThread().setName(transactionId != null ? transactionId : Util.generateTransaction());
         if (username == null && email == null)
             throw new ValidationException("Username or email is mandatory", ErrorCodes.MANDATORY_PARAMETER_IS_MISSING);
 
-        var user = userService.getUserByUsernameOrEmail(username, email);
+        var customer = userService.getCustomerByUsernameOrEmail(username, email);
 
-        return new ResponseEntity<>(user, HttpStatus.OK);
+        return Util.createResponse(customer, HttpStatus.OK, startTime);
     }
 
     @PutMapping
-    public ResponseEntity<UserDTO> updateUser(@RequestParam @ValidUsername String username, @RequestBody @Valid UserRequest userRequest,
-                                              HttpServletRequest httpServletRequest) throws ApplicationException {
+    public ResponseEntity<CustomerDTO> updateUser(@RequestParam @ValidUsername String username, @RequestBody @Valid UserRequest userRequest,
+                                                  HttpServletRequest httpServletRequest) throws ApplicationException {
 
+        long startTime = System.currentTimeMillis();
         var transactionId = httpServletRequest.getHeader("transaction-id");
         Thread.currentThread().setName(transactionId != null ? transactionId : Util.generateTransaction());
 
-        var user = userService.updateUser(username, userRequest);
-        return new ResponseEntity<>(user, HttpStatus.OK);
+        var customer = userService.updateCustomer(username, userRequest);
+        return Util.createResponse(customer, HttpStatus.OK, startTime);
     }
 
     @DeleteMapping
     public ResponseEntity deleteUser(@RequestParam(required = false) @ValidUsername String username, @RequestParam(required = false) @ValidEmail String email,
                                      HttpServletRequest httpServletRequest) throws ValidationException {
+        long startTime = System.currentTimeMillis();
         var transactionId = httpServletRequest.getHeader("transaction-id");
         Thread.currentThread().setName(transactionId != null ? transactionId : Util.generateTransaction());
         if (username == null && email == null)
             throw new ValidationException("Username or email is mandatory", ErrorCodes.MANDATORY_PARAMETER_IS_MISSING);
-        userService.deleteUser(username, email);
+        userService.deleteCustomer(username, email);
 
-        return new ResponseEntity<>(HttpStatus.OK);
+        return Util.createResponse(HttpStatus.OK, startTime);
     }
 
 }

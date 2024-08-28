@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="warn">
+    <Properties>
+        <Property name="basePath">./logs</Property>
+    </Properties>
+
+    <Appenders>
+        <RollingFile name="applicationFileAppender" fileName="${basePath}/Log.log"
+                     filePattern="${basePath}/Log_%d{yyyy-MM-dd}.log">
+            <AdvancedJSONLayout newLine="true" exposeMessageOnRoot="true" exposeContextMapOnRoot="true" exposeLocationOnRoot="true" locationInfo="true">
+                <KeyValuePair key="service" value="book-store-service" />
+            </AdvancedJSONLayout>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+            </Policies>
+        </RollingFile>
+
+        <RollingFile name="errorFileAppender" fileName="${basePath}/Error.log" 
+                     filePattern="${basePath}/Error_%d{yyyy-MM-dd}.log">
+            <AdvancedJSONLayout newLine="true" exposeMessageOnRoot="true" exposeContextMapOnRoot="true" exposeLocationOnRoot="true" locationInfo="true">
+                <KeyValuePair key="service" value="book-store-service" />
+            </AdvancedJSONLayout>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+            </Policies>
+        </RollingFile>
+       
+        <Console name="console" target="SYSTEM_OUT">
+            <AdvancedJSONLayout newLine="true" exposeMessageOnRoot="true" exposeContextMapOnRoot="true" exposeLocationOnRoot="true" locationInfo="true">
+                <KeyValuePair key="service" value="book-store-service" />
+            </AdvancedJSONLayout>
+        </Console>
+    </Appenders>
+
+    <Loggers>
+        <Logger name="applicationLogger" level="debug" additivity="false">
+            <AppenderRef  ref="applicationFileAppender" level="debug" />
+             <AppenderRef  ref="console" level="info" />
+        </Logger>
+        <Logger name="errorLogger" level="debug" additivity="false">
+            <AppenderRef  ref="errorFileAppender" level="debug" />
+             <AppenderRef  ref="console" level="info" />
+        </Logger>
+        <Root level="debug" additivity="false">
+            <AppenderRef  ref="console" level="debug" />
+        </Root>
+    </Loggers>
+</Configuration>

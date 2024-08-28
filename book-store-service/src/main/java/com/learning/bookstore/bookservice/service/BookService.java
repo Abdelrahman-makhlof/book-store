@@ -1,11 +1,15 @@
 package com.learning.bookstore.bookservice.service;
 
-import com.learning.bookstore.bookservice.constants.DatabaseStructure;
-import com.learning.bookstore.bookservice.dto.BookDTO;
-import com.learning.bookstore.bookservice.entity.Book;
 import com.learning.bookstore.bookservice.repository.BookRepository;
+import com.learning.bookstore.common.constants.DatabaseStructure;
 import com.learning.bookstore.common.constants.ErrorCodes;
+import com.learning.bookstore.common.constants.LogKeys;
+import com.learning.bookstore.common.dto.BookDTO;
+import com.learning.bookstore.common.entity.Book;
 import com.learning.bookstore.common.exception.ApplicationException;
+import com.learning.bookstore.common.logger.ApplicationLogger;
+import com.learning.bookstore.common.logger.ErrorLogger;
+import com.learning.bookstore.common.logger.LoggerFactory;
 import com.learning.bookstore.common.util.Util;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -17,6 +21,8 @@ import jakarta.persistence.criteria.Root;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -37,6 +43,9 @@ public class BookService {
         try {
             bookRepository.save(Util.map(modelMapper, bookDTO, Book.class));
         } catch (DataIntegrityViolationException e) {
+            ErrorLogger.error(LoggerFactory.log("Book already exist")
+                    .put(LogKeys.BOOK_TITLE, bookDTO.getTitle()).put(LogKeys.BOOK_AUTHOR, bookDTO.getAuthor())
+                    .put(LogKeys.ERROR_CODE, ErrorCodes.DATA_ALREADY_EXIST).build());
             throw new ApplicationException("A book with this title already exists.", ErrorCodes.DATA_ALREADY_EXIST);
         }
         return bookDTO;
@@ -48,14 +57,21 @@ public class BookService {
             var book = bookRepository.findById(Long.parseLong(id));
             bookRepository.save(Util.map(modelMapper, bookDTO, Book.class));
         } catch (DataIntegrityViolationException e) {
+            ErrorLogger.error(LoggerFactory.log("Book already exist")
+                    .put(LogKeys.BOOK_TITLE, bookDTO.getTitle()).put(LogKeys.BOOK_AUTHOR, bookDTO.getAuthor())
+                    .put(LogKeys.ERROR_CODE, ErrorCodes.DATA_ALREADY_EXIST).build());
             throw new ApplicationException("A book with this title already exists.", ErrorCodes.DATA_ALREADY_EXIST);
         }
         return bookDTO;
     }
 
-    public void deleteBook(BookDTO bookDTO) {
+    public void deleteBook(String id, String title, String author) {
+        if (title != null && author != null) {
+            bookRepository.deleteAllByTitleAndAuthor(title, author);
+        } else if (id != null) {
+            bookRepository.deleteById(Long.parseLong(id));
+        }
 
-        bookRepository.deleteAllByTitleAndAuthor(bookDTO.getTitle(), bookDTO.getAuthor());
     }
 
 
@@ -63,19 +79,26 @@ public class BookService {
         var book = bookRepository.findBookByTitleAndAuthor(title, author);
 
         if (book == null) {
+            ErrorLogger.error(LoggerFactory.log("No data found")
+                    .put(LogKeys.BOOK_TITLE, title).put(LogKeys.BOOK_AUTHOR, author)
+                    .put(LogKeys.ERROR_CODE, ErrorCodes.NO_DATA_FOUND).build());
             throw new ApplicationException("No data found", ErrorCodes.NO_DATA_FOUND);
         }
         return Util.map(modelMapper, book, BookDTO.class);
     }
 
-    public List<BookDTO> getBooksByTitle(String title) throws ApplicationException {
-        var books = bookRepository.findBooksByTitle(title);
+    public List<BookDTO> getBooksByTitle(String title, int pageNumber, int pageSize) throws ApplicationException {
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        var books = bookRepository.findBooksByTitle(title, pageable);
 
         if (books == null || books.isEmpty()) {
+            ErrorLogger.error(LoggerFactory.log("No data found")
+                    .put(LogKeys.BOOK_TITLE, title)
+                    .put(LogKeys.ERROR_CODE, ErrorCodes.NO_DATA_FOUND).build());
             throw new ApplicationException("No data found", ErrorCodes.NO_DATA_FOUND);
         }
 
-        return books.stream()
+        return books.getContent().stream()
                 .map(book -> Util.map(modelMapper, book, BookDTO.class))
                 .collect(Collectors.toList());
     }
@@ -84,6 +107,9 @@ public class BookService {
         var books = bookRepository.findBooksByAuthor(author);
 
         if (books == null || books.isEmpty()) {
+            ErrorLogger.error(LoggerFactory.log("No data found")
+                    .put(LogKeys.BOOK_AUTHOR, author).put(LogKeys.BOOK_AUTHOR, author)
+                    .put(LogKeys.ERROR_CODE, ErrorCodes.NO_DATA_FOUND).build());
             throw new ApplicationException("No data found", ErrorCodes.NO_DATA_FOUND);
         }
         return books.stream()
@@ -91,7 +117,7 @@ public class BookService {
                 .collect(Collectors.toList());
     }
 
-    public List<BookDTO> searchBooks(String title, String author, double minPrice, double maxPrice) {
+    public List<BookDTO> searchBooks(String title, String author, double minPrice, double maxPrice, List<String> categories, int page, int size) {
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
 
         // Create CriteriaQuery
@@ -120,13 +146,27 @@ public class BookService {
             predicates.add(maxPricePredicate);
         }
 
+        if (categories != null && !categories.isEmpty()) {
+            Predicate categoryPredicate = bookRoot.get(DatabaseStructure.BOOK.CATEGORY).in(categories);
+            predicates.add(categoryPredicate);
+        }
         if (!predicates.isEmpty()) {
             criteriaQuery.where(criteriaBuilder.and(predicates.toArray(new Predicate[0])));
         }
+
+        ApplicationLogger.info("Search query: " + criteriaQuery.toString());
         // Create the query and execute
         TypedQuery<Book> query = entityManager.createQuery(criteriaQuery);
-
+        query.setMaxResults(size);
+        query.setFirstResult(page * size);
         return query.getResultList().stream()
+                .map(book -> Util.map(modelMapper, book, BookDTO.class))
+                .collect(Collectors.toList());
+    }
+
+    public List<BookDTO> getBooksByCategories(List<String> category, int page, int size) {
+
+        return bookRepository.findByCategoryIn(category, PageRequest.of(page, size)).stream()
                 .map(book -> Util.map(modelMapper, book, BookDTO.class))
                 .collect(Collectors.toList());
     }
